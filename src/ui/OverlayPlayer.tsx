@@ -6,8 +6,10 @@ import { PauseIcon, PlayIcon, StepBackIcon, StepForwardIcon } from './icons';
 
 interface Props {
   analysis: AnalysisResult;
-  /** URL of the clip, or null for a synthetic demo swing (drawn on a plain background). */
+  /** URL of the clip, or null for a synthetic demo swing or a swing saved without its clip (drawn on a plain background). */
   videoUrl: string | null;
+  /** Shown over the plain background when there is no clip to play. */
+  noVideoNote?: string;
 }
 
 const SPEEDS = [0.1, 0.25, 0.5, 1];
@@ -20,7 +22,7 @@ const JUMPS: Array<{ key: PhaseName; label: string }> = [
   { key: 'finish', label: 'Finish' },
 ];
 
-export function OverlayPlayer({ analysis, videoUrl }: Props) {
+export function OverlayPlayer({ analysis, videoUrl, noVideoNote }: Props) {
   const { frames, phases, aspect, frameInterval } = analysis;
   const n = frames.length;
   // Frames were analyzed at the middle of each native frame, so the player aims at the same spot.
@@ -36,6 +38,8 @@ export function OverlayPlayer({ analysis, videoUrl }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const idxRef = useRef(idx);
+  const playingRef = useRef(playing);
+  playingRef.current = playing;
   const redrawRef = useRef<(i: number) => void>(() => undefined);
 
   const redraw = useCallback(
@@ -84,6 +88,30 @@ export function OverlayPlayer({ analysis, videoUrl }: Props) {
     }
     redraw(idx);
   }, [idx, playing, frames, half, nativeInterval, videoUrl, redraw]);
+
+  // Seeking before the clip has loaded does nothing, and iPhones do not draw a paused video until it has played once.
+  // So once the clip loads: play it muted for a moment, pause, then seek to the chosen frame.
+  const primedRef = useRef(false);
+  const onVideoReady = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || playingRef.current) return;
+    const seek = () => {
+      if (playingRef.current) return;
+      video.currentTime = frames[idxRef.current].t + half;
+    };
+    if (primedRef.current) {
+      seek();
+      return;
+    }
+    primedRef.current = true;
+    video
+      .play()
+      .then(() => {
+        if (!playingRef.current) video.pause();
+        seek();
+      })
+      .catch(seek);
+  }, [frames, half]);
 
   // Redraw when the layout changes size.
   useEffect(() => {
@@ -139,8 +167,11 @@ export function OverlayPlayer({ analysis, videoUrl }: Props) {
   return (
     <div className="player">
       <div ref={wrapRef} className="player-stage" style={{ aspectRatio: String(aspect) }}>
-        {videoUrl && <video ref={videoRef} src={videoUrl} muted playsInline preload="auto" />}
+        {videoUrl && (
+          <video ref={videoRef} src={videoUrl} muted playsInline preload="auto" onLoadedMetadata={onVideoReady} />
+        )}
         <canvas ref={canvasRef} />
+        {!videoUrl && noVideoNote && <p className="player-note">{noVideoNote}</p>}
       </div>
 
       <div className="scrub" style={scrubStyle}>

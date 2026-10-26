@@ -20,18 +20,29 @@ export const DEFAULT_SETTINGS: AppSettings = {
   recordedFps: 120,
   analysisRate: 'capped60',
   modelVariant: 'full',
-  keepClip: false,
+  keepClip: true,
   useClaude: false,
   claudeKey: '',
   claudeModel: 'claude-sonnet-5-5',
 };
 
 const KEY = 'golf-swing-analyzer:settings';
+/** Bumped when a stored setting needs a one-time change. Version 2 turns on keeping clips, which used to default to off. */
+const VERSION = 2;
+const VERSION_KEY = 'golf-swing-analyzer:settings-version';
 
 export function loadSettings(): AppSettings {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<AppSettings>) };
+    if (raw) {
+      const stored = { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<AppSettings>) };
+      if (Number(localStorage.getItem(VERSION_KEY) ?? 1) < 2) {
+        stored.keepClip = true;
+        localStorage.setItem(KEY, JSON.stringify(stored));
+      }
+      localStorage.setItem(VERSION_KEY, String(VERSION));
+      return stored;
+    }
   } catch {
     /* storage unavailable or corrupt: use defaults */
   }
@@ -41,6 +52,7 @@ export function loadSettings(): AppSettings {
 export function saveSettings(settings: AppSettings): void {
   try {
     localStorage.setItem(KEY, JSON.stringify(settings));
+    localStorage.setItem(VERSION_KEY, String(VERSION));
   } catch {
     /* storage unavailable: settings last for this session only */
   }

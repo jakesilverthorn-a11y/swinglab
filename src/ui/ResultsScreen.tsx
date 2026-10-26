@@ -161,6 +161,9 @@ export function ResultsScreen({ current, setCurrent, settings, history, onSaved,
               key={current.videoUrl ?? current.label + analysis.frames.length}
               analysis={analysis}
               videoUrl={current.videoUrl}
+              noVideoNote={
+                current.isDemo ? undefined : 'The video was not kept when this swing was saved. Swings you save from now on keep their video.'
+              }
             />
           </section>
           {!current.isDemo && (

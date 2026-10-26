@@ -1414,6 +1414,22 @@ select {
 .player-stage video {
   object-fit: contain;
 }
+.player-note {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(8, 11, 10, 0.78);
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  font-weight: 450;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: center;
+}
 .player {
   display: flex;
   flex-direction: column;
