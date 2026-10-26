@@ -130,16 +130,15 @@ export function OverlayPlayer({ analysis, videoUrl, noVideoNote }: Props) {
     let raf = 0;
     let k = idxRef.current >= n - 2 ? phases.address : idxRef.current;
     const startT = frames[k].t;
-    const wall0 = performance.now();
-    if (video) {
-      video.playbackRate = speed;
-      video.currentTime = startT + half;
-      void video.play().catch(() => {
-        if (!cancelled) setPlaying(false);
-      });
-    }
+    let wall0 = performance.now();
+    let seekWait = 0;
     const tick = () => {
       if (cancelled) return;
+      // While a seek is still finishing, the video reports its old time. Hold the current frame until it lands.
+      if (video && video.seeking) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
       const t = video ? video.currentTime : startT + ((performance.now() - wall0) / 1000) * speed;
       if (t < frames[k].t) k = 0;
       while (k < n - 1 && frames[k + 1].t <= t) k++;
@@ -152,10 +151,39 @@ export function OverlayPlayer({ analysis, videoUrl, noVideoNote }: Props) {
       }
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+    const begin = () => {
+      if (cancelled) return;
+      window.clearTimeout(seekWait);
+      wall0 = performance.now();
+      if (video) {
+        video.playbackRate = speed;
+        void video
+          .play()
+          .then(() => {
+            // Safari can reset the rate when playback starts.
+            if (!cancelled) video.playbackRate = speed;
+          })
+          .catch(() => {
+            if (!cancelled) setPlaying(false);
+          });
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    if (video) {
+      // Start from the chosen frame: seek there first and only start playing once the seek has finished,
+      // so playback does not pick up from wherever the video last was.
+      video.pause();
+      video.addEventListener('seeked', begin, { once: true });
+      seekWait = window.setTimeout(begin, 1500);
+      video.currentTime = startT + half;
+    } else {
+      begin();
+    }
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
+      window.clearTimeout(seekWait);
+      video?.removeEventListener('seeked', begin);
       video?.pause();
     };
   }, [playing, speed, frames, half, n, phases.address, videoUrl]);
