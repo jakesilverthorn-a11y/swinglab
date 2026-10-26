@@ -1,0 +1,32 @@
+{
+  "name": "golf-swing-analyzer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Browser-based golf swing analyzer: pose tracking, swing phases, metrics, fault detection, coaching and progress tracking.",
+  "scripts": {
+    "setup": "node scripts/setup-mediapipe.mjs",
+    "postinstall": "node scripts/setup-mediapipe.mjs",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:hosted": "tsc --noEmit && vite build --mode hosted --base=./ --outDir dist-hosted",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@mediapipe/tasks-vision": "^1.0.1",
+    "idb": "^8.0.3",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.3"
+  }
+}

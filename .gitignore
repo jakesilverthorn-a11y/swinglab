@@ -1,0 +1,6 @@
+node_modules
+dist
+dist-hosted
+public/mediapipe
+public/models
+*.local

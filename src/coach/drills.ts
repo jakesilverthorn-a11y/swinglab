@@ -1,0 +1,140 @@
+import type { Drill } from '../types';
+
+// Standard practice drills, written in lead/trail terms so they work for left- and right-handed golfers.
+export const DRILLS: Drill[] = [
+  {
+    id: 'count-3-1',
+    name: 'Counted 3-to-1 swings',
+    faultIds: ['tempo'],
+    summary: 'Trains a backswing about three times as long as the downswing.',
+    steps: [
+      'Take a mid-iron and make half-speed swings.',
+      "Say 'one, two, three' evenly as the club goes back, reaching the top on 'three'.",
+      "Say 'hit' as you swing down, without rushing the start of the downswing.",
+      'After 10 slow reps, make 5 swings at normal speed and keep the same count in your head.',
+    ],
+    reps: '10 slow swings, then 5 at normal speed, two rounds',
+    cue: 'Three back, one through.',
+  },
+  {
+    id: 'feet-together',
+    name: 'Feet-together swings',
+    faultIds: ['tempo'],
+    summary: 'Forces a smooth, balanced swing because you cannot lunge or sway.',
+    steps: [
+      'Stand with your feet touching and a short iron in hand.',
+      'Make three-quarter swings at about 60% effort.',
+      'Finish in balance; if you stumble, slow the swing down.',
+    ],
+    reps: '10 to 15 swings',
+    cue: 'Smooth and balanced.',
+    caution: 'Keep the swings well within your balance and stop if anything feels uncomfortable.',
+  },
+  {
+    id: 'head-wall',
+    name: 'Head-to-wall turns',
+    faultIds: ['sway'],
+    summary: 'Teaches turning around a steady head instead of swaying off the ball.',
+    steps: [
+      'Stand with your trail side toward a wall, close enough that your head is a few inches from it at address.',
+      'Turn slowly to the top of the backswing. Your head should rotate but not slide sideways into the wall.',
+      'Return to address without touching the wall, then repeat.',
+    ],
+    reps: '10 slow turns, then 10 slow swings',
+    cue: 'Turn around the head.',
+  },
+  {
+    id: 'trail-hip-wall',
+    name: 'Trail-hip-to-wall backswings',
+    faultIds: ['slide'],
+    summary: 'Builds a hip turn that rotates in place instead of drifting sideways.',
+    steps: [
+      'Set up with your trail hip lightly touching a wall, a chair back, or a golf bag.',
+      'Make a slow backswing, turning the hips without pushing the trail hip off the wall.',
+      'Start down by rotating your lead hip back and around rather than sliding toward the target.',
+    ],
+    reps: '10 slow backswings, then 10 half swings',
+    cue: 'Turn in a barrel.',
+  },
+  {
+    id: 'finish-hold',
+    name: 'Three-second finish hold',
+    faultIds: ['hang-back'],
+    summary: 'Builds the habit of finishing balanced over the lead foot.',
+    steps: [
+      'Make swings at about 70% speed.',
+      'Hold your finish for three full seconds with your belt buckle facing the target and most of your weight on the lead foot.',
+      'If you cannot hold the finish, reduce your swing speed until you can.',
+    ],
+    reps: '10 to 15 swings',
+    cue: 'Finish and freeze.',
+  },
+  {
+    id: 'rod-spine',
+    name: 'Alignment rod along the spine',
+    faultIds: ['stand-up', 'early-extension'],
+    summary: 'Gives feedback on holding your posture angle through impact.',
+    steps: [
+      'Hold an alignment rod or club shaft against your back so it touches your tailbone and upper back at address.',
+      'Make slow half swings, keeping the rod in contact with both points for as long as you can.',
+      'If the rod leaves your tailbone as you stand up, slow down and feel your hips stay back.',
+    ],
+    reps: '10 slow half swings',
+    cue: 'Keep the tilt.',
+  },
+  {
+    id: 'chair-wall',
+    name: 'Chair drill',
+    faultIds: ['early-extension', 'stand-up'],
+    summary: 'Keeps the hips back through the downswing so they do not thrust toward the ball.',
+    steps: [
+      'Set up with the seat of a stable chair, or a wall, lightly touching your glutes at address.',
+      'Make slow swings, keeping your glutes in contact through the downswing and impact.',
+      'Feel your hips turn rather than move toward the ball.',
+    ],
+    reps: '10 slow swings, then 10 half swings',
+    cue: 'Seat stays back.',
+    caution: 'Use a stable chair and go slowly.',
+  },
+  {
+    id: 'pump',
+    name: 'Pump drill',
+    faultIds: ['over-the-top'],
+    summary: 'Rehearses dropping the hands down and in from the top instead of throwing them outward.',
+    steps: [
+      'Swing to the top of the backswing.',
+      'Start down and stop with the hands about hip height, feeling them drop close to your body.',
+      'Return to the top and repeat once more, then swing through the ball.',
+    ],
+    reps: '8 to 10 pump swings',
+    cue: 'Drop, do not throw.',
+  },
+  {
+    id: 'headcover-outside',
+    name: 'Head cover outside the ball',
+    faultIds: ['over-the-top'],
+    summary: 'Gives instant feedback on an outside-in path by rewarding an approach from the inside.',
+    steps: [
+      'Place a head cover a few inches beyond the ball, slightly toward the target and on the side away from you.',
+      'Make half swings that miss the head cover.',
+      'If you clip it, the club came from too far outside; slow down and let the hands drop first.',
+    ],
+    reps: '10 half swings',
+    cue: 'Approach from the inside.',
+  },
+  {
+    id: 'extended-arm-slow',
+    name: 'Wide-arc slow swings',
+    faultIds: ['lead-arm-collapse'],
+    summary: 'Builds a wider, steadier arc with the lead arm extended.',
+    steps: [
+      'Make slow, half-speed swings with the lead arm feeling long and relaxed, not stiff.',
+      'Pause at the top and check your lead arm in a mirror or on video; the elbow should not fold.',
+      'Repeat, letting your chest turn instead of lifting the hands with your arms.',
+    ],
+    reps: '10 slow swings',
+    cue: 'Long lead arm, turning chest.',
+  },
+];
+
+export const DRILL_BY_ID: Record<string, Drill> = Object.fromEntries(DRILLS.map((d) => [d.id, d]));
