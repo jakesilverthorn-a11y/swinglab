@@ -163,6 +163,19 @@ export function ResultsScreen({ current, setCurrent, settings, history, onSaved,
               videoUrl={current.videoUrl}
             />
           </section>
+          {!current.isDemo && (
+            <div className="savebar">
+              <button type="button" className="btn primary wide" onClick={save} disabled={saving}>
+                {current.savedId ? (
+                  <>
+                    <CheckIcon size={18} /> Saved · update
+                  </>
+                ) : (
+                  'Save swing'
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="res-side">
@@ -186,19 +199,6 @@ export function ResultsScreen({ current, setCurrent, settings, history, onSaved,
         </div>
       </div>
 
-      {!current.isDemo && (
-        <div className="savebar">
-          <button type="button" className="btn primary wide" onClick={save} disabled={saving}>
-            {current.savedId ? (
-              <>
-                <CheckIcon size={18} /> Saved · update
-              </>
-            ) : (
-              'Save swing'
-            )}
-          </button>
-        </div>
-      )}
       {toast && (
         <div className="toast" role="status">
           {toast}

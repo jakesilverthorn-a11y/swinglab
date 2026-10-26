@@ -1272,7 +1272,7 @@ select {
   width: 100%;
   max-width: var(--col);
   margin: 0 auto;
-  padding: 16px 16px calc(100px + env(safe-area-inset-bottom, 0px));
+  padding: 16px 16px calc(32px + env(safe-area-inset-bottom, 0px));
 }
 .res-main,
 .res-side {
@@ -1371,25 +1371,12 @@ select {
 }
 
 .savebar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 60;
   display: flex;
-  justify-content: center;
-  padding: 26px 16px calc(14px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(to top, var(--bg) 55%, rgba(8, 11, 10, 0));
-  pointer-events: none;
-}
-.savebar .btn {
-  width: min(100%, var(--col));
-  pointer-events: auto;
 }
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   z-index: 120;
   transform: translateX(-50%);
   max-width: calc(100% - 32px);

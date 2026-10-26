@@ -3,7 +3,7 @@
   are used, including the pose runtime and model (about 40 MB, downloaded once).
   Bump VERSION when the files in public/ change.
 */
-const VERSION = 'swinglab-v4';
+const VERSION = 'swinglab-v5';
 const SHELL = ['./', 'manifest.webmanifest', 'favicon.svg', 'apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
