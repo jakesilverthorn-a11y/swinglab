@@ -10,6 +10,8 @@ interface Props {
   videoUrl: string | null;
   /** Shown over the plain background when there is no clip to play. */
   noVideoNote?: string;
+  /** Ask the player to pause and show this frame. A new object each time, so asking for the same frame twice works. */
+  seek?: { frame: number } | null;
 }
 
 const SPEEDS = [0.1, 0.25, 0.5, 1];
@@ -22,7 +24,7 @@ const JUMPS: Array<{ key: PhaseName; label: string }> = [
   { key: 'finish', label: 'Finish' },
 ];
 
-export function OverlayPlayer({ analysis, videoUrl, noVideoNote }: Props) {
+export function OverlayPlayer({ analysis, videoUrl, noVideoNote, seek }: Props) {
   const { frames, phases, aspect, frameInterval } = analysis;
   const n = frames.length;
   // Frames were analyzed at the middle of each native frame, so the player aims at the same spot.
@@ -77,6 +79,12 @@ export function OverlayPlayer({ analysis, videoUrl, noVideoNote }: Props) {
     idxRef.current = clamped;
     setIdx(clamped);
   }, [n]);
+
+  useEffect(() => {
+    if (!seek) return;
+    setPlaying(false);
+    goTo(seek.frame);
+  }, [seek, goTo]);
 
   // Paused: show the chosen frame (seek the video, draw the overlay).
   useEffect(() => {

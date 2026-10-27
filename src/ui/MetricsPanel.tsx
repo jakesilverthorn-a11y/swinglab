@@ -1,12 +1,19 @@
 import type { MetricResult, MetricStatus } from '../types';
 import { THRESHOLDS, type Threshold } from '../analysis/metrics';
-import { AlertIcon, CheckIcon, CloseIcon, InfoIcon } from './icons';
+import { AlertIcon, CheckIcon, ChevronRightIcon, CloseIcon, InfoIcon } from './icons';
 
-const STATUS_LABEL: Record<MetricStatus, string> = {
+export const STATUS_LABEL: Record<MetricStatus, string> = {
   good: 'In range',
   warn: 'Watch',
   bad: 'Fix this',
   unavailable: 'Not measured',
+};
+
+const ACTION_LABEL: Record<MetricStatus, string> = {
+  good: 'How to keep it',
+  warn: 'How to fix it',
+  bad: 'How to fix it',
+  unavailable: 'Why it was not measured',
 };
 
 const ORDER: Record<MetricStatus, number> = { bad: 0, warn: 1, good: 2, unavailable: 3 };
@@ -84,7 +91,7 @@ const StatusIcon = ({ status }: { status: MetricStatus }) =>
     <InfoIcon size={14} />
   );
 
-export function MetricsPanel({ metrics }: { metrics: MetricResult[] }) {
+export function MetricsPanel({ metrics, onSelect }: { metrics: MetricResult[]; onSelect?: (m: MetricResult) => void }) {
   const sorted = [...metrics].sort((a, b) => ORDER[a.status] - ORDER[b.status]);
   return (
     <div className="metrics">
@@ -93,7 +100,24 @@ export function MetricsPanel({ metrics }: { metrics: MetricResult[] }) {
         const g = measured ? gaugeFor(THRESHOLDS[m.id], m.value as number) : null;
         const { figure, unit } = splitDisplay(m.display);
         return (
-          <article key={m.id} className={`metric ${m.status}`}>
+          <article
+            key={m.id}
+            className={`metric ${m.status}${onSelect ? ' tappable' : ''}`}
+            role={onSelect ? 'button' : undefined}
+            tabIndex={onSelect ? 0 : undefined}
+            aria-label={onSelect ? `${m.label}, ${m.display}, ${STATUS_LABEL[m.status]}. ${ACTION_LABEL[m.status]}` : undefined}
+            onClick={onSelect ? () => onSelect(m) : undefined}
+            onKeyDown={
+              onSelect
+                ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelect(m);
+                    }
+                  }
+                : undefined
+            }
+          >
             <header>
               <h4>{m.label}</h4>
               <span className={`pill ${m.status}`}>
@@ -128,6 +152,12 @@ export function MetricsPanel({ metrics }: { metrics: MetricResult[] }) {
                 </span>
                 Tracking confidence {Math.round(m.confidence * 100)}%{m.experimental ? ' · rough 2D estimate' : ''}
               </p>
+            )}
+            {onSelect && (
+              <span className="metric-more">
+                {ACTION_LABEL[m.status]}
+                <ChevronRightIcon size={16} />
+              </span>
             )}
           </article>
         );

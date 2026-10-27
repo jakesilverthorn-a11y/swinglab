@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { CloseIcon } from './icons';
 
 interface Props {
@@ -87,7 +88,9 @@ export function Sheet({ open, onClose, title, children, footer, dismissible = tr
     else setDrag(0);
   };
 
-  return (
+  // Rendered into <body>: a screen with a transform or animation would otherwise become the sheet's frame, so a
+  // sheet opened while scrolled down would land off-screen.
+  return createPortal(
     <div className={`sheet-root${closing ? ' closing' : ''}`}>
       <div className="sheet-backdrop" onClick={request} />
       <div
@@ -119,6 +122,7 @@ export function Sheet({ open, onClose, title, children, footer, dismissible = tr
         <div className="sheet-body">{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import type { SwingRecord } from '../types';
+import { useEffect, useRef, useState } from 'react';
+import type { MetricId, SwingRecord } from '../types';
 import type { AppSettings } from '../settings';
 import { claudeCoach } from '../coach/claudeCoach';
 import { swingScore } from '../analysis/score';
@@ -7,6 +7,8 @@ import { defaultLabel, type CurrentSwing } from '../state';
 import { newId, saveSwing } from '../storage/db';
 import { OverlayPlayer } from './OverlayPlayer';
 import { MetricsPanel } from './MetricsPanel';
+import { MetricDetail } from './MetricDetail';
+import { metricGuide } from '../coach/metricGuide';
 import { CoachPanel } from './CoachPanel';
 import { ScoreRing } from './ScoreRing';
 import { Sheet } from './Sheet';
@@ -31,6 +33,10 @@ export function ResultsScreen({ current, setCurrent, settings, history, onSaved,
   const [menu, setMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [detail, setDetail] = useState<MetricId | null>(null);
+  const [seek, setSeek] = useState<{ frame: number } | null>(null);
+  const playerRef = useRef<HTMLElement>(null);
+  const detailMetric = detail ? current.analysis.metrics.find((m) => m.id === detail) ?? null : null;
 
   const { analysis } = current;
   const score = swingScore(analysis);
@@ -156,11 +162,12 @@ export function ResultsScreen({ current, setCurrent, settings, history, onSaved,
             </div>
           )}
 
-          <section className="card flush">
+          <section className="card flush" ref={playerRef}>
             <OverlayPlayer
               key={current.videoUrl ?? current.label + analysis.frames.length}
               analysis={analysis}
               videoUrl={current.videoUrl}
+              seek={seek}
               noVideoNote={
                 current.isDemo ? undefined : 'The video was not kept when this swing was saved. Swings you save from now on keep their video.'
               }
@@ -191,7 +198,7 @@ export function ResultsScreen({ current, setCurrent, settings, history, onSaved,
             between={
               <section className="block">
                 <h3 className="block-title">Measurements</h3>
-                <MetricsPanel metrics={analysis.metrics} />
+                <MetricsPanel metrics={analysis.metrics} onSelect={(m) => setDetail(m.id)} />
                 <p className="muted small fineprint">
                   Ranges are starting heuristics, not validated norms, and one camera can only measure what it can see. Read the
                   numbers together with the annotated replay.
@@ -207,6 +214,20 @@ export function ResultsScreen({ current, setCurrent, settings, history, onSaved,
           {toast}
         </div>
       )}
+
+      <Sheet open={detailMetric !== null} onClose={() => setDetail(null)} title={detailMetric?.label ?? ''}>
+        {detailMetric && (
+          <MetricDetail
+            metric={detailMetric}
+            analysis={analysis}
+            onShow={() => {
+              setSeek({ frame: analysis.phases[metricGuide(detailMetric, analysis).phase] });
+              setDetail(null);
+              window.setTimeout(() => playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 240);
+            }}
+          />
+        )}
+      </Sheet>
 
       <Sheet open={menu} onClose={() => { setMenu(false); setConfirmDelete(false); }} title="Swing options">
         <div className="menu">
