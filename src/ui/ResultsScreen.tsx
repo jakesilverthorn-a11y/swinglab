@@ -3,7 +3,7 @@ import type { MetricId, SwingRecord } from '../types';
 import type { AppSettings } from '../settings';
 import { claudeCoach } from '../coach/claudeCoach';
 import { swingScore } from '../analysis/score';
-import { defaultLabel, type CurrentSwing } from '../state';
+import { toRecord, type CurrentSwing } from '../state';
 import { newId, saveSwing } from '../storage/db';
 import { OverlayPlayer } from './OverlayPlayer';
 import { MetricsPanel } from './MetricsPanel';
@@ -55,17 +55,9 @@ export function ResultsScreen({ current, setCurrent, settings, history, onSaved,
     setSaving(true);
     try {
       const id = current.savedId ?? newId();
-      const record: SwingRecord = {
-        id,
-        createdAt: Date.now(),
-        label: current.label.trim() || defaultLabel(),
-        thumbnail: current.thumbnail,
-        hasClip: keepClip && current.clip !== null,
-        analysis: current.analysis,
-        coachNote: current.coach,
-      };
+      const record = toRecord(current, id, keepClip);
       await saveSwing(record, keepClip && current.clip ? current.clip : undefined);
-      setCurrent({ ...current, savedId: id });
+      setCurrent({ ...current, savedId: id, createdAt: record.createdAt });
       onSaved();
       setToast(current.savedId ? 'Swing updated' : 'Saved to Progress');
     } catch {

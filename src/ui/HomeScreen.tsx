@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { SwingRecord } from '../types';
 import type { CurrentSwing } from '../state';
-import { formatDate } from '../state';
+import { formatDate, formatDay } from '../state';
 import { swingScore } from '../analysis/score';
 import { DRILL_BY_ID } from '../coach/drills';
 import { FAULT_DEFS } from '../analysis/faults';
@@ -16,6 +16,7 @@ interface Props {
   onDemo: () => void;
   onOpenCurrent: () => void;
   onOpenRecord: (record: SwingRecord) => void;
+  onSeeAll: () => void;
 }
 
 function HeroArt() {
@@ -36,7 +37,7 @@ function HeroArt() {
   );
 }
 
-export function HomeScreen({ history, current, onAdd, onDemo, onOpenCurrent, onOpenRecord }: Props) {
+export function HomeScreen({ history, current, onAdd, onDemo, onOpenCurrent, onOpenRecord, onSeeAll }: Props) {
   const latest = history[0];
   const showCurrent = current !== null && current.savedId === undefined;
   const latestAnalysis = showCurrent ? current.analysis : latest?.analysis;
@@ -61,6 +62,8 @@ export function HomeScreen({ history, current, onAdd, onDemo, onOpenCurrent, onO
   const lastWhen = showCurrent ? 'Just analyzed · not saved yet' : latest ? formatDate(latest.createdAt) : '';
   const lastThumb = showCurrent ? current.thumbnail : latest?.thumbnail;
   const lastFault = latestAnalysis?.faults[0]?.label;
+  // The swings under the latest one: skip the one already shown in the card above.
+  const earlier = (showCurrent ? history : history.slice(1)).slice(0, 4);
 
   return (
     <div className="screen-pad">
@@ -110,6 +113,38 @@ export function HomeScreen({ history, current, onAdd, onDemo, onOpenCurrent, onO
             {lastScore && <ScoreRing value={lastScore.value} tone={lastScore.tone} size={52} compact />}
             <ChevronRightIcon size={18} className="chev" />
           </button>
+        </section>
+      )}
+
+      {earlier.length > 0 && (
+        <section className="block">
+          <div className="block-head">
+            <h2 className="block-title">Earlier swings</h2>
+            <button type="button" className="link-btn" onClick={onSeeAll}>
+              See all {history.length}
+            </button>
+          </div>
+          <ul className="swing-list">
+            {earlier.map((r) => {
+              const sc = swingScore(r.analysis);
+              return (
+                <li key={r.id}>
+                  <button type="button" className="swing-row" onClick={() => onOpenRecord(r)}>
+                    {r.thumbnail ? <img src={r.thumbnail} alt="" className="thumb" /> : <span className="thumb empty" aria-hidden="true" />}
+                    <span className="swing-row-text">
+                      <strong>{r.label}</strong>
+                      <small>
+                        {formatDay(r.createdAt)} · {r.analysis.settings.view === 'face-on' ? 'Face-on' : 'Down the line'}
+                      </small>
+                      <small className="fix">{r.analysis.faults[0] ? r.analysis.faults[0].label : 'No faults flagged'}</small>
+                    </span>
+                    {sc && <span className={`score-pill ${sc.tone}`}>{sc.value}</span>}
+                    <ChevronRightIcon size={16} className="chev" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         </section>
       )}
 

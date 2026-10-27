@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SwingRecord } from './types';
 import { loadSettings, saveSettings, type AppSettings } from './settings';
-import { clearAll, deleteSwing, getClip, listSwings } from './storage/db';
+import { clearAll, deleteSwing, getClip, listSwings, newId, saveSwing } from './storage/db';
 import { templateCoach } from './coach/templateCoach';
 import { generateSwing } from './demo/syntheticSwing';
 import { analyzeSwing } from './analysis/analyze';
-import type { CurrentSwing } from './state';
+import { toRecord, type CurrentSwing } from './state';
 import { TabBar, type Tab } from './ui/TabBar';
 import { HomeScreen } from './ui/HomeScreen';
 import { HistoryPanel } from './ui/HistoryPanel';
@@ -70,6 +70,21 @@ export default function App() {
     setCurrent(swing);
     setCapturing(false);
     openResults();
+    if (!swing.isDemo) void autoSave(swing);
+  };
+
+  // Every analyzed swing is saved straight away, so adding the next one never loses it.
+  // If storage is blocked the swing stays unsaved and the Save button on the results screen remains.
+  const autoSave = async (swing: CurrentSwing) => {
+    try {
+      const id = newId();
+      const record = toRecord(swing, id, settings.keepClip);
+      await saveSwing(record, settings.keepClip && swing.clip ? swing.clip : undefined);
+      setCurrentRaw((prev) => (prev && prev.analysis === swing.analysis ? { ...prev, savedId: id, createdAt: record.createdAt } : prev));
+      await refresh();
+    } catch {
+      /* leave it unsaved */
+    }
   };
 
   const openRecord = async (record: SwingRecord) => {
@@ -83,6 +98,7 @@ export default function App() {
       coach: record.coachNote ?? templateCoach(record.analysis, others),
       label: record.label,
       savedId: record.id,
+      createdAt: record.createdAt,
       isDemo: false,
     });
     openResults();
@@ -132,6 +148,7 @@ export default function App() {
             onDemo={runDemo}
             onOpenCurrent={openResults}
             onOpenRecord={openRecord}
+            onSeeAll={() => changeTab('progress')}
           />
         )}
         {tab === 'progress' && <HistoryPanel records={history} onOpen={openRecord} onAdd={() => setCapturing(true)} />}

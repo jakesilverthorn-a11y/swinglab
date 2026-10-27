@@ -2228,3 +2228,11 @@ select {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Plain text button, e.g. "See all" beside a section title */
+.link-btn {
+  padding: 4px 0;
+  color: var(--accent);
+  font-size: 0.9375rem;
+  font-weight: 650;
+}

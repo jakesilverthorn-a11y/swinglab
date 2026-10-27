@@ -16,10 +16,13 @@ interface Props {
   onAdd: () => void;
 }
 
+const LIST_PREVIEW = 6;
+
 export function HistoryPanel({ records, onOpen, onAdd }: Props) {
   const [metricId, setMetricId] = useState<MetricId>('tempo');
   const [picked, setPicked] = useState<string[]>([]);
   const [comparing, setComparing] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const chronological = useMemo(() => [...records].reverse(), [records]);
   const recent = records.slice(0, 10);
@@ -106,6 +109,56 @@ export function HistoryPanel({ records, onOpen, onAdd }: Props) {
     <div className="screen-pad">
       <h1 className="large-title">Progress</h1>
 
+      <section className="block">
+        <div className="block-head">
+          <h2 className="block-title">Your swings ({records.length})</h2>
+          {picked.length === 2 ? (
+            <button type="button" className="btn small primary" onClick={() => setComparing(true)}>
+              Compare
+            </button>
+          ) : (
+            <span className="muted small">Tick two to compare</span>
+          )}
+        </div>
+        <ul className="swing-list">
+          {(showAll ? records : records.slice(0, LIST_PREVIEW)).map((r) => {
+            const s = swingScore(r.analysis);
+            const on = picked.includes(r.id);
+            return (
+              <li key={r.id}>
+                <button
+                  type="button"
+                  className={`pick${on ? ' on' : ''}`}
+                  role="checkbox"
+                  aria-checked={on}
+                  aria-label={`Compare ${r.label}`}
+                  onClick={() => toggle(r.id)}
+                >
+                  {on && <CheckIcon size={14} />}
+                </button>
+                <button type="button" className="swing-row" onClick={() => onOpen(r)}>
+                  {r.thumbnail ? <img src={r.thumbnail} alt="" className="thumb" /> : <span className="thumb empty" aria-hidden="true" />}
+                  <span className="swing-row-text">
+                    <strong>{r.label}</strong>
+                    <small>
+                      {formatDay(r.createdAt)} · {r.analysis.settings.view === 'face-on' ? 'Face-on' : 'Down the line'}
+                    </small>
+                    <small className="fix">{r.analysis.faults[0] ? r.analysis.faults[0].label : 'No faults flagged'}</small>
+                  </span>
+                  {s && <span className={`score-pill ${s.tone}`}>{s.value}</span>}
+                  <ChevronRightIcon size={16} className="chev" />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        {records.length > LIST_PREVIEW && (
+          <button type="button" className="btn secondary wide" onClick={() => setShowAll((v) => !v)}>
+            {showAll ? 'Show fewer' : `Show all ${records.length} swings`}
+          </button>
+        )}
+      </section>
+
       <section className="card">
         <div className="card-head">
           <div>
@@ -177,51 +230,6 @@ export function HistoryPanel({ records, onOpen, onAdd }: Props) {
             ))}
           </ul>
         )}
-      </section>
-
-      <section className="block">
-        <div className="block-head">
-          <h2 className="block-title">Saved swings</h2>
-          {picked.length === 2 ? (
-            <button type="button" className="btn small primary" onClick={() => setComparing(true)}>
-              Compare
-            </button>
-          ) : (
-            <span className="muted small">Tick two to compare</span>
-          )}
-        </div>
-        <ul className="swing-list">
-          {records.map((r) => {
-            const s = swingScore(r.analysis);
-            const on = picked.includes(r.id);
-            return (
-              <li key={r.id}>
-                <button
-                  type="button"
-                  className={`pick${on ? ' on' : ''}`}
-                  role="checkbox"
-                  aria-checked={on}
-                  aria-label={`Compare ${r.label}`}
-                  onClick={() => toggle(r.id)}
-                >
-                  {on && <CheckIcon size={14} />}
-                </button>
-                <button type="button" className="swing-row" onClick={() => onOpen(r)}>
-                  {r.thumbnail ? <img src={r.thumbnail} alt="" className="thumb" /> : <span className="thumb empty" aria-hidden="true" />}
-                  <span className="swing-row-text">
-                    <strong>{r.label}</strong>
-                    <small>
-                      {formatDay(r.createdAt)} · {r.analysis.settings.view === 'face-on' ? 'Face-on' : 'Down the line'}
-                    </small>
-                    <small className="fix">{r.analysis.faults[0] ? r.analysis.faults[0].label : 'No faults flagged'}</small>
-                  </span>
-                  {s && <span className={`score-pill ${s.tone}`}>{s.value}</span>}
-                  <ChevronRightIcon size={16} className="chev" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
       </section>
 
       <Sheet open={comparing && compare.length === 2} onClose={() => setComparing(false)} title="Compare swings">

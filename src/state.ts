@@ -1,4 +1,4 @@
-import type { AnalysisResult, CoachNote } from './types';
+import type { AnalysisResult, CoachNote, SwingRecord } from './types';
 
 /** The swing on the results screen: freshly analyzed, a demo, or one reopened from history. */
 export interface CurrentSwing {
@@ -9,7 +9,22 @@ export interface CurrentSwing {
   coach: CoachNote;
   label: string;
   savedId?: string;
+  /** When the swing was first saved, kept so later updates do not reorder the list. */
+  createdAt?: number;
   isDemo: boolean;
+}
+
+/** The stored form of a swing. */
+export function toRecord(swing: CurrentSwing, id: string, keepClip: boolean): SwingRecord {
+  return {
+    id,
+    createdAt: swing.createdAt ?? Date.now(),
+    label: swing.label.trim() || defaultLabel(),
+    thumbnail: swing.thumbnail,
+    hasClip: keepClip && swing.clip !== null,
+    analysis: swing.analysis,
+    coachNote: swing.coach,
+  };
 }
 
 export const defaultLabel = (): string =>
