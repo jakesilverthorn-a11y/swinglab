@@ -122,7 +122,7 @@ export function OverlayPlayer({ analysis, videoUrl, noVideoNote }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  // Playing: follow the video clock (or a wall clock for the demo) and draw the matching frame.
+  // Playing: step through the frames from the chosen one and keep the video in line with them.
   useEffect(() => {
     if (!playing) return;
     const video = videoRef.current && videoUrl ? videoRef.current : null;
@@ -130,31 +130,61 @@ export function OverlayPlayer({ analysis, videoUrl, noVideoNote }: Props) {
     let raf = 0;
     let k = idxRef.current >= n - 2 ? phases.address : idxRef.current;
     const startT = frames[k].t;
-    let wall0 = performance.now();
     let seekWait = 0;
+    // The overlay runs on its own clock, anchored at the chosen frame. iPhones can report a stale video time for a
+    // moment after seeking or starting playback, so the video time is only followed while it agrees with that clock.
+    // When it disagrees, the video is moved back in line instead of the overlay jumping to it.
+    let anchorT = startT;
+    let anchorAt = performance.now();
+    let lastFix = 0;
+    let misses = 0;
+    // Step mode: if the video cannot keep pace (for example a playback speed the browser does not support), keep it
+    // paused and show each frame by seeking.
+    let stepMode = false;
+    const tolerance = 0.2;
     const tick = () => {
       if (cancelled) return;
-      // While a seek is still finishing, the video reports its old time. Hold the current frame until it lands.
-      if (video && video.seeking) {
-        raf = requestAnimationFrame(tick);
-        return;
+      const now = performance.now();
+      let t = anchorT + ((now - anchorAt) / 1000) * speed;
+      if (video && !video.seeking) {
+        const vt = video.currentTime - half;
+        if (!stepMode && !video.paused) {
+          if (Math.abs(vt - t) < tolerance) {
+            t = vt;
+            anchorT = vt;
+            anchorAt = now;
+            misses = 0;
+          } else if (now - lastFix > 400) {
+            lastFix = now;
+            misses++;
+            if (misses >= 3) {
+              stepMode = true;
+              video.pause();
+            } else {
+              video.currentTime = t + half;
+            }
+          }
+        }
+        if (stepMode && Math.abs(vt - t) > nativeInterval * 0.5) video.currentTime = t + half;
       }
-      const t = video ? video.currentTime : startT + ((performance.now() - wall0) / 1000) * speed;
       if (t < frames[k].t) k = 0;
       while (k < n - 1 && frames[k + 1].t <= t) k++;
       idxRef.current = k;
       setIdx(k);
       redrawRef.current(k);
-      if (k >= n - 1 || video?.ended) {
+      if (k >= n - 1) {
         setPlaying(false);
         return;
       }
       raf = requestAnimationFrame(tick);
     };
+    let started = false;
     const begin = () => {
-      if (cancelled) return;
+      if (cancelled || started) return;
+      started = true;
       window.clearTimeout(seekWait);
-      wall0 = performance.now();
+      anchorT = startT;
+      anchorAt = performance.now();
       if (video) {
         video.playbackRate = speed;
         void video
@@ -186,7 +216,7 @@ export function OverlayPlayer({ analysis, videoUrl, noVideoNote }: Props) {
       video?.removeEventListener('seeked', begin);
       video?.pause();
     };
-  }, [playing, speed, frames, half, n, phases.address, videoUrl]);
+  }, [playing, speed, frames, half, nativeInterval, n, phases.address, videoUrl]);
 
   const label = phaseLabel(phases, idx);
   const progress = n > 1 ? (idx / (n - 1)) * 100 : 0;
