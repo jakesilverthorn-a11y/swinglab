@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "SwingLab",
+  "short_name": "SwingLab",
+  "description": "Film a swing on your phone, see it tracked frame by frame, and get one clear fix.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080b0a",
+  "theme_color": "#080b0a",
+  "categories": ["sports", "health"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
